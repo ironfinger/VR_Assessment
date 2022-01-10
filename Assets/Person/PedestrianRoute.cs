@@ -79,8 +79,7 @@ public class PedestrianRoute : MonoBehaviour
         else if (routeNumber == 11) route = new List<Transform> { wps[7], wps[5], wps[4], wps[1], wps[2] };
 
         //initialise position and waypoint counter
-        transform.position = new Vector3(route[0].position.x, 0.0f,
-        route[0].position.z);
+        transform.position = new Vector3(route[0].position.x, 0.0f, route[0].position.z);
         targetWP = 1;
     }
     
