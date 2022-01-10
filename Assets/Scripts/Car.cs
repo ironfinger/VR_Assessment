@@ -8,13 +8,19 @@ public class Car : MonoBehaviour
     // Public Variables:
     public List<Transform> wps; // Store the transforms of the waypoints.
     public List <Transform> route; // Store the routes.
-    public int routeNumber = 0;
-    public int targetWP = 0;
-    public float speed = 0.0f;
-    public float speedLimit = 20;
-    public float accelerationRate = 4.0f;
-    public float safetyCheck = 5f;
+    public int routeNumber = 0; // Stores the route that the car is on.
+    public int targetWP = 0; // Stores the target waypoint.
+    public float speed = 0.0f; // Stores the current speed.
+    public float speedLimit = 20; // Stores the speed limit.
+    public float accelerationRate = 4.0f; // Stores the acceleration rate.
+    public float safetyCheck = 5f; // The amount of time a car will waint until it starts to move again.
     
+    public List <GameObject> redLights; // Stores the red lights of the traffic lights.
+    public int routeLight;
+
+    public Transform trafficLight;
+
+    // Private Variables:
     private Rigidbody rb;
     public bool isAccelerating;
 
@@ -41,6 +47,16 @@ public class Car : MonoBehaviour
         wp = GameObject.Find("Car_WP4");
         wps.Add(wp.transform);
         
+        // We are going to get the traffic light red lights:
+        trafficLight = GameObject.Find("TL1").transform;
+        redLights.Add(trafficLight.Find("Red light").gameObject);
+
+        trafficLight = GameObject.Find("TL2").transform;
+        redLights.Add(trafficLight.Find("Red light").gameObject);
+
+        trafficLight = GameObject.Find("TL3").transform;
+        redLights.Add(trafficLight.Find("Red light").gameObject);
+
         speed = 0f;
         isAccelerating = true;
 
@@ -54,8 +70,10 @@ public class Car : MonoBehaviour
         // Set the route waypoints:
         if (routeNumber == 0) {
             route = new List<Transform> { wps[0], wps[1] };
+            routeLight = 2;
         } else if (routeNumber == 1) {
             route = new List<Transform> { wps[2], wps[3] };
+            routeLight = 1;
         }
 
         // Initialise the position and waypoint counter:
@@ -94,11 +112,27 @@ public class Car : MonoBehaviour
         Transform destination = getDestination();
         Vector3 displacement = destination.position - transform.position;
         float distance = displacement.magnitude;
+        
         if (distance < 0.5f) {
             SetRoute();
         }
 
         setSpeed();
+
+        // Traffic light check:
+        GameObject currentLight = redLights[routeLight];
+        Transform TcurrentLight = currentLight.transform;
+        Vector3 lightDisplacement = TcurrentLight.position - transform.position;
+        float lightDistance = lightDisplacement.magnitude;
+
+        if (redLights[routeLight].activeInHierarchy == true && lightDistance <= 15f) {
+            isAccelerating = false;
+            safetyCheck = 0f;
+            accelerationRate = 20f;
+        } else if (redLights[routeLight].activeInHierarchy != true) {
+            isAccelerating = true;
+            accelerationRate = 4.0f;
+        }
 
         // Calculate the velocity:
         Vector3 velocity = displacement;
