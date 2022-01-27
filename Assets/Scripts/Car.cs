@@ -24,6 +24,8 @@ public class Car : MonoBehaviour
     private Rigidbody rb;
     public bool isAccelerating;
 
+    public bool pedestrianNearby = false;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -34,18 +36,34 @@ public class Car : MonoBehaviour
         GameObject wp;
 
         // Add the first waypoint:
-        wp = GameObject.Find("Car_WP1");
+        wp = GameObject.Find("Car_WP1"); // 0
         wps.Add(wp.transform);
 
         // Add the second waypoint:
-        wp = GameObject.Find("Car_WP2");
+        wp = GameObject.Find("Car_WP2"); // 1
         wps.Add(wp.transform);
 
-        wp = GameObject.Find("Car_WP3");
+        wp = GameObject.Find("Car_WP3"); // 2 
         wps.Add(wp.transform);
 
-        wp = GameObject.Find("Car_WP4");
+        wp = GameObject.Find("Car_WP4"); // 3
         wps.Add(wp.transform);
+
+        wp = GameObject.Find("Car_WP5"); // 4
+        wps.Add(wp.transform);
+
+        wp = GameObject.Find("Car_WP6"); // 5
+        wps.Add(wp.transform);
+
+        wp = GameObject.Find("Car_WP7"); // 6
+        wps.Add(wp.transform);
+
+        wp = GameObject.Find("Car_WP8"); // 7
+        wps.Add(wp.transform);
+
+        wp = GameObject.Find("Car_WP9"); // 8
+        wps.Add(wp.transform);
+
         
         // We are going to get the traffic light red lights:
         trafficLight = GameObject.Find("TL1").transform;
@@ -65,7 +83,7 @@ public class Car : MonoBehaviour
     }
     
     void SetRoute() {
-        routeNumber = Random.Range(0, 2);
+        routeNumber = 0;
         
         // Set the route waypoints:
         if (routeNumber == 0) {
@@ -74,6 +92,11 @@ public class Car : MonoBehaviour
         } else if (routeNumber == 1) {
             route = new List<Transform> { wps[2], wps[3] };
             routeLight = 1;
+        } else if (routeNumber == 2) {
+            route = new List<Transform> { wps[0], wps[4], wps[5] };
+            routeLight = 2;
+        } else if (routeNumber == 3) {
+            route = new List<Transform> { wps[6], wps[7], wps[8] };
         }
 
         // Initialise the position and waypoint counter:
@@ -97,6 +120,7 @@ public class Car : MonoBehaviour
                 safetyCheck -= Time.deltaTime;
                 if (safetyCheck <= 0f) {
                     isAccelerating = true;
+                    safetyCheck = 5f;
                 }
             }
         } else {
@@ -105,16 +129,24 @@ public class Car : MonoBehaviour
         }
     }
 
+
     // Update is called once per frame
     void FixedUpdate()
     {
         // Store the waypoint in which it is headed:
         Transform destination = getDestination();
         Vector3 displacement = destination.position - transform.position;
+        displacement.y = 0;
         float distance = displacement.magnitude;
         
+        // Check if the car has reahed a waypoint:
         if (distance < 0.5f) {
-            SetRoute();
+            targetWP++;
+
+            if (targetWP >= route.Count) {
+                SetRoute();
+                return;
+            }
         }
 
         setSpeed();
@@ -125,37 +157,39 @@ public class Car : MonoBehaviour
         Vector3 lightDisplacement = TcurrentLight.position - transform.position;
         float lightDistance = lightDisplacement.magnitude;
 
-        if (redLights[routeLight].activeInHierarchy == true && lightDistance <= 15f) {
-            isAccelerating = false;
-            safetyCheck = 0f;
-            accelerationRate = 20f;
-        } else if (redLights[routeLight].activeInHierarchy != true) {
-            isAccelerating = true;
-            accelerationRate = 4.0f;
-        }
+        // if (redLights[routeLight].activeInHierarchy == true && lightDistance <= 15f) {
+        //     isAccelerating = false;
+        //     safetyCheck = 0f;
+        //     accelerationRate = 20f;
+        // } else if (redLights[routeLight].activeInHierarchy != true) {
+        //     isAccelerating = true;
+        //     accelerationRate = 4.0f;
+        // }
 
         // Calculate the velocity:
         Vector3 velocity = displacement;
         velocity.Normalize();
         velocity *= speed;
-
-        // Rotate the car: 
-        transform.rotation = Quaternion.LookRotation(destination.position);
         
         // Apply the velocity:
         Vector3 newPosition = transform.position;
         newPosition += velocity * Time.deltaTime;
-        rb.MovePosition(newPosition);   
+        rb.MovePosition(newPosition);
+
+        // Alight the velocity:
+        Vector3 desiredForward = Vector3.RotateTowards(transform.forward, velocity, 10.0f * Time.deltaTime, 0f);
+        Quaternion rotation = Quaternion.LookRotation(desiredForward);
+        rb.MoveRotation(rotation);   
     }
 
     void OnTriggerEnter(Collider other)
     {
-        Debug.Log("CRASH CRASH CRASH!!!!!");
-
-        // We need to slow down:
-        isAccelerating = false;
-        safetyCheck = 5f;
-        accelerationRate = 20f;
+        if (other.gameObject.tag == "Pedestrian") {
+            Debug.Log("Hit the pedestrian");
+            isAccelerating = false;
+            safetyCheck = 5f;
+            accelerationRate = 25f;
+        }
     }
 
     void OnTriggerExit(Collider other)
