@@ -17,6 +17,7 @@ public class Car : MonoBehaviour
     
     public List <GameObject> redLights; // Stores the red lights of the traffic lights.
     public int routeLight;
+    public bool isWaitingAtTrafficLight = false;
 
     public Transform trafficLight;
 
@@ -83,6 +84,7 @@ public class Car : MonoBehaviour
     }
     
     void SetRoute() {
+        // routeNumber = Random.Range(0, 4);
         routeNumber = 0;
         
         // Set the route waypoints:
@@ -120,6 +122,7 @@ public class Car : MonoBehaviour
                 safetyCheck -= Time.deltaTime;
                 if (safetyCheck <= 0f) {
                     isAccelerating = true;
+                    accelerationRate = 4.0f;
                     safetyCheck = 5f;
                 }
             }
@@ -166,6 +169,16 @@ public class Car : MonoBehaviour
         //     accelerationRate = 4.0f;
         // }
 
+        // If true then check to see if the light has turned 'green' yet:
+        if (isWaitingAtTrafficLight == true) {
+            // Therefore its waiting, so need to check if it turns green:
+            if (currentLight.activeInHierarchy == false) {
+                isWaitingAtTrafficLight = false;
+                isAccelerating = true;
+                accelerationRate = 4.0f;
+            }
+        }
+
         // Calculate the velocity:
         Vector3 velocity = displacement;
         velocity.Normalize();
@@ -184,11 +197,26 @@ public class Car : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+
+        Debug.Log("collision");
+        Debug.Log(other.gameObject.tag);
+
         if (other.gameObject.tag == "Pedestrian") {
-            Debug.Log("Hit the pedestrian");
+
             isAccelerating = false;
             safetyCheck = 5f;
             accelerationRate = 25f;
+
+        } else if (other.gameObject.name == "TL3_check") {
+
+            GameObject currentLight = redLights[routeLight];
+
+            if (currentLight.activeInHierarchy == true) {
+                // This makes the car go to a stop if the (red) light is active in the scene.
+                isAccelerating = false;
+                accelerationRate = 10f;
+                isWaitingAtTrafficLight = true;
+            }
         }
     }
 
