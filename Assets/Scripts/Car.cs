@@ -1,4 +1,3 @@
-using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,14 +14,15 @@ public class Car : MonoBehaviour
     public float speedLimit = 20; // Stores the speed limit.
     public float accelerationRate = 4.0f; // Stores the acceleration rate.
     public float safetyCheck = 5f; // The amount of time a car will waint until it starts to move again.
-    public bool isAccelerating;
     
     public List <GameObject> redLights; // Stores the red lights of the traffic lights.
     public int routeLight;
+
     public Transform trafficLight;
 
     // Private Variables:
     private Rigidbody rb;
+    public bool isAccelerating;
 
     // Start is called before the first frame update
     void Start()
@@ -46,13 +46,6 @@ public class Car : MonoBehaviour
 
         wp = GameObject.Find("Car_WP4");
         wps.Add(wp.transform);
-
-        // Extra routes:
-        wp = GameObject.Find("Car_WP6");
-        wps.Add(wp.transform);
-
-        wp = GameObject.Find("Car_WP7");
-        wps.Add(wp.transform);
         
         // We are going to get the traffic light red lights:
         trafficLight = GameObject.Find("TL1").transform;
@@ -72,7 +65,7 @@ public class Car : MonoBehaviour
     }
     
     void SetRoute() {
-        routeNumber = 2;
+        routeNumber = Random.Range(0, 2);
         
         // Set the route waypoints:
         if (routeNumber == 0) {
@@ -81,9 +74,6 @@ public class Car : MonoBehaviour
         } else if (routeNumber == 1) {
             route = new List<Transform> { wps[2], wps[3] };
             routeLight = 1;
-        } else if (routeNumber == 2) {
-            route = new List<Transform> {wps[0], wps[4]};
-            routeLight = 2;
         }
 
         // Initialise the position and waypoint counter:
