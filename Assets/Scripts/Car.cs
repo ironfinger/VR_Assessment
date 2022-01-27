@@ -65,6 +65,8 @@ public class Car : MonoBehaviour
         wp = GameObject.Find("Car_WP9"); // 8
         wps.Add(wp.transform);
 
+        wp = GameObject.Find("Car_WP10"); // 9
+        wps.Add(wp.transform);
         
         // We are going to get the traffic light red lights:
         trafficLight = GameObject.Find("TL1").transform;
@@ -84,8 +86,8 @@ public class Car : MonoBehaviour
     }
     
     void SetRoute() {
-        // routeNumber = Random.Range(0, 4);
-        routeNumber = 0;
+        routeNumber = Random.Range(0, 5);
+        // routeNumber = 4;
         
         // Set the route waypoints:
         if (routeNumber == 0) {
@@ -98,7 +100,11 @@ public class Car : MonoBehaviour
             route = new List<Transform> { wps[0], wps[4], wps[5] };
             routeLight = 2;
         } else if (routeNumber == 3) {
+            routeLight = 0;
             route = new List<Transform> { wps[6], wps[7], wps[8] };
+        } else if (routeNumber == 4) {
+            route = new List<Transform> { wps[2], wps[9], wps[5] };
+            routeLight = 1;
         }
 
         // Initialise the position and waypoint counter:
@@ -213,6 +219,24 @@ public class Car : MonoBehaviour
 
             if (currentLight.activeInHierarchy == true) {
                 // This makes the car go to a stop if the (red) light is active in the scene.
+                isAccelerating = false;
+                accelerationRate = 10f;
+                isWaitingAtTrafficLight = true;
+            }
+        } else if (other.gameObject.name == "TL2_check") {
+            
+            GameObject currentLight = redLights[routeLight];
+
+            if (currentLight.activeInHierarchy == true) {
+                isAccelerating = false;
+                accelerationRate = 10f;
+                isWaitingAtTrafficLight = true;
+            }
+        } else if (other.gameObject.name == "TL1_check") {
+            
+            GameObject currentLight = redLights[routeLight];
+
+            if (currentLight.activeInHierarchy == true) {
                 isAccelerating = false;
                 accelerationRate = 10f;
                 isWaitingAtTrafficLight = true;
